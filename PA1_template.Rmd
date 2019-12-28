@@ -1,7 +1,6 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 output:
-  rmarkdown::github_document:
   html_document:
     keep_md: true
 ---
