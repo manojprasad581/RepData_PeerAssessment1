@@ -1,16 +1,19 @@
-Reproducible Research: Peer Assessment 1
-================
-
+---
+title: "Reproducible Research: Peer Assessment 1"
+output:
+  html_document:
+    keep_md: true
+---
 ## Initialize Global Settings
 
-``` r
+```r
 library(knitr)
 opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 ## Loading and preprocessing the data
 
-``` r
+```r
 #Load all required packages
 library(dplyr)
 library(timeDate)
@@ -22,7 +25,7 @@ dataset <- read.csv("activity.csv")
 
 ## What is mean total number of steps taken per day?
 
-``` r
+```r
 plotHistogramTotalSteps <- function(dateSummary) {
     hist(dateSummary$totalSteps, col = "green", xlab = "TotalStepsPerDay")
     rug(dateSummary$totalSteps)
@@ -64,14 +67,16 @@ totalStepsTakenEachDay <- function(dataset) {
 totalStepsTakenEachDay(dataset)
 ```
 
-![](PA1_template_files/figure-gfm/totalStepsTakenEachDay-1.png)<!-- -->![](PA1_template_files/figure-gfm/totalStepsTakenEachDay-2.png)<!-- -->
+![](PA1_template_files/figure-html/totalStepsTakenEachDay-1.png)<!-- -->![](PA1_template_files/figure-html/totalStepsTakenEachDay-2.png)<!-- -->
 
-    ## [1] "Mean Steps Taken Per Day =  9354.22950819672"
-    ## [1] "Median Steps Taken Per Day =  10395"
+```
+## [1] "Mean Steps Taken Per Day =  9354.22950819672"
+## [1] "Median Steps Taken Per Day =  10395"
+```
 
 ## What is the average daily activity pattern?
 
-``` r
+```r
 timeSeriesPlot <- function(intervalSummary) {
     par(mfrow=c(1,1))
     with(intervalSummary, plot(x = interval, y = meanSteps, type = "l", xlab = "Interval", ylab = "MeanSteps",
@@ -84,25 +89,29 @@ intervalSummary <- summarise(groupByDataset, meanSteps = mean(steps, na.rm = TRU
 timeSeriesPlot(intervalSummary)
 ```
 
-![](PA1_template_files/figure-gfm/averageStepsTakenPerInterval-1.png)<!-- -->
+![](PA1_template_files/figure-html/averageStepsTakenPerInterval-1.png)<!-- -->
 
-``` r
+```r
 intervalWithMaxMeanSteps <- with(intervalSummary, filter(intervalSummary, meanSteps == max(meanSteps))$interval)
 
 print(paste("5 Minute interval having max(meanSteps) = ", intervalWithMaxMeanSteps))
 ```
 
-    ## [1] "5 Minute interval having max(meanSteps) =  835"
+```
+## [1] "5 Minute interval having max(meanSteps) =  835"
+```
 
-``` r
+```r
 print(paste("max(meanSteps) = ", max(intervalSummary$meanSteps)))
 ```
 
-    ## [1] "max(meanSteps) =  206.169811320755"
+```
+## [1] "max(meanSteps) =  206.169811320755"
+```
 
 ## Imputing missing values
 
-``` r
+```r
 inputMissingValues <- function(dataset) {
     numberOfNARows <- sum(!complete.cases(dataset))
     print(paste("Number of Rows with NAs = ", numberOfNARows))
@@ -121,16 +130,20 @@ inputMissingValues <- function(dataset) {
 datasetWithNoNAs <- inputMissingValues(dataset)
 ```
 
-    ## [1] "Number of Rows with NAs =  2304"
+```
+## [1] "Number of Rows with NAs =  2304"
+```
 
-![](PA1_template_files/figure-gfm/inputMissingValues-1.png)<!-- -->![](PA1_template_files/figure-gfm/inputMissingValues-2.png)<!-- -->
+![](PA1_template_files/figure-html/inputMissingValues-1.png)<!-- -->![](PA1_template_files/figure-html/inputMissingValues-2.png)<!-- -->
 
-    ## [1] "Mean Steps Taken Per Day =  10766.1886792453"
-    ## [1] "Median Steps Taken Per Day =  10766.1886792453"
+```
+## [1] "Mean Steps Taken Per Day =  10766.1886792453"
+## [1] "Median Steps Taken Per Day =  10766.1886792453"
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-``` r
+```r
 #Create a new factor column to indicate Weekday vs Weekend for a given date
 datasetWithNoNAs <- mutate(datasetWithNoNAs, dayClassification = as.factor(ifelse(isWeekday(date, wday=1:5), "Weekday", "Weekend")))
 
@@ -144,4 +157,4 @@ weekdayTrendPlot <- weekdayTrendPlot + geom_line(color = "blue") + labs(x = "Int
 print(weekdayTrendPlot)
 ```
 
-![](PA1_template_files/figure-gfm/weekEndWeekDayPatterns-1.png)<!-- -->
+![](PA1_template_files/figure-html/weekEndWeekDayPatterns-1.png)<!-- -->
