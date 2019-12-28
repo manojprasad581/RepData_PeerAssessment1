@@ -79,8 +79,9 @@ totalStepsTakenEachDay(dataset)
 ```r
 timeSeriesPlot <- function(intervalSummary) {
     par(mfrow=c(1,1))
-    with(intervalSummary, plot(x = interval, y = meanSteps, type = "l", xlab = "Interval", ylab = "MeanSteps",
-                               col = "blue", main = "Time Series Plot of MeanSteps per Interval"))
+    with(intervalSummary, plot(x = interval, y = meanSteps, type = "l", xlab = "Interval",
+                               ylab = "MeanSteps", col = "blue",
+                               main = "Time Series Plot of MeanSteps per Interval"))
 }
 
 groupByDataset <- group_by(dataset, interval)
@@ -92,7 +93,8 @@ timeSeriesPlot(intervalSummary)
 ![](PA1_template_files/figure-html/averageStepsTakenPerInterval-1.png)<!-- -->
 
 ```r
-intervalWithMaxMeanSteps <- with(intervalSummary, filter(intervalSummary, meanSteps == max(meanSteps))$interval)
+intervalWithMaxMeanSteps <- with(intervalSummary, filter(intervalSummary, 
+                                                  meanSteps == max(meanSteps))$interval)
 
 print(paste("5 Minute interval having max(meanSteps) = ", intervalWithMaxMeanSteps))
 ```
@@ -109,7 +111,7 @@ print(paste("max(meanSteps) = ", max(intervalSummary$meanSteps)))
 ## [1] "max(meanSteps) =  206.169811320755"
 ```
 
-## Imputing missing values
+## Inputing missing values
 
 ```r
 inputMissingValues <- function(dataset) {
@@ -120,7 +122,8 @@ inputMissingValues <- function(dataset) {
     datasetWithNoNAs <- cbind(dataset)
 
     #Fill in NAs for column steps with the median values computed in dateSummary
-    datasetWithNoNAs <- datasetWithNoNAs %>% group_by(interval) %>% mutate(steps = ifelse(is.na(steps), mean(steps, na.rm = TRUE), steps))
+    datasetWithNoNAs <- datasetWithNoNAs %>% group_by(interval) %>% 
+      mutate(steps = ifelse(is.na(steps), mean(steps, na.rm = TRUE), steps))
     
     totalStepsTakenEachDay(datasetWithNoNAs)
     
@@ -145,14 +148,16 @@ datasetWithNoNAs <- inputMissingValues(dataset)
 
 ```r
 #Create a new factor column to indicate Weekday vs Weekend for a given date
-datasetWithNoNAs <- mutate(datasetWithNoNAs, dayClassification = as.factor(ifelse(isWeekday(date, wday=1:5), "Weekday", "Weekend")))
+datasetWithNoNAs <- mutate(datasetWithNoNAs, dayClassification = 
+                             as.factor(ifelse(isWeekday(date, wday=1:5), "Weekday", "Weekend")))
 
 #Group by the dataset with interval and dayClassification
 groupByDataset <- group_by(datasetWithNoNAs, interval, dayClassification)
 intervalSummaryWeekDay <- summarise(groupByDataset, meanSteps = mean(steps, na.rm = TRUE))
 
 weekdayTrendPlot <- ggplot(intervalSummaryWeekDay, aes(interval, meanSteps))
-weekdayTrendPlot <- weekdayTrendPlot + geom_line(color = "blue") + labs(x = "Interval", y = "Average Number of Steps") +
+weekdayTrendPlot <- weekdayTrendPlot + geom_line(color = "blue") +
+                    labs(x = "Interval", y = "Average Number of Steps") +
                     facet_grid( dayClassification ~ . )
 print(weekdayTrendPlot)
 ```
