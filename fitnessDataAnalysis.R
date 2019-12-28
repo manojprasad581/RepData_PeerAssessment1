@@ -1,28 +1,8 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
-## Initialize Global Settings
-```{r setoptions, echo = TRUE}
-library(knitr)
-opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-```
+loadDataset <- function() {
+    dataset <- read.csv("activity.csv")
+    dataset
+}
 
-## Loading and preprocessing the data
-```{r loadingData}
-#Load all required packages
-library(dplyr)
-library(timeDate)
-library(ggplot2)
-
-#Read the data
-dataset <- read.csv("activity.csv")
-```
-
-## What is mean total number of steps taken per day?
-```{r totalStepsTakenEachDay}
 plotHistogramTotalSteps <- function(dateSummary) {
     hist(dateSummary$totalSteps, col = "green", xlab = "TotalStepsPerDay")
     rug(dateSummary$totalSteps)
@@ -45,8 +25,10 @@ barPlotTotalSteps <- function(dateSummary) {
 }
 
 totalStepsTakenEachDay <- function(dataset) {
+    library(dplyr)
     groupByDataset <- group_by(dataset, date)
     dateSummary <- summarise(groupByDataset, totalSteps = sum(steps, na.rm = TRUE))
+    #View(dateSummary)
     
     #Plot  histogram on totalSteps
     plotHistogramTotalSteps(dateSummary)
@@ -61,31 +43,29 @@ totalStepsTakenEachDay <- function(dataset) {
     print(paste("Median Steps Taken Per Day = " , medianStepsTakenPerDay))
 }
 
-totalStepsTakenEachDay(dataset)
-```
-
-## What is the average daily activity pattern?
-```{r averageStepsTakenPerInterval}
 timeSeriesPlot <- function(intervalSummary) {
     par(mfrow=c(1,1))
     with(intervalSummary, plot(x = interval, y = meanSteps, type = "l", xlab = "Interval", ylab = "MeanSteps",
                                col = "blue", main = "Time Series Plot of MeanSteps per Interval"))
 }
 
-groupByDataset <- group_by(dataset, interval)
-intervalSummary <- summarise(groupByDataset, meanSteps = mean(steps, na.rm = TRUE))
+averageStepsTakenPerInterval <- function(dataset) {
+    library(dplyr)
+    groupByDataset <- group_by(dataset, interval)
+    intervalSummary <- summarise(groupByDataset, meanSteps = mean(steps, na.rm = TRUE))
+    #View(intervalSummary)
+    
+    timeSeriesPlot(intervalSummary)
+    
+    intervalWithMaxMeanSteps <- with(intervalSummary, filter(intervalSummary, meanSteps == max(meanSteps))$interval)
+    
+    print(paste("5 Minute interval having max(meanSteps) = ", intervalWithMaxMeanSteps))
+    print(paste("max(meanSteps) = ", max(intervalSummary$meanSteps)))
+}
 
-timeSeriesPlot(intervalSummary)
-
-intervalWithMaxMeanSteps <- with(intervalSummary, filter(intervalSummary, meanSteps == max(meanSteps))$interval)
-
-print(paste("5 Minute interval having max(meanSteps) = ", intervalWithMaxMeanSteps))
-print(paste("max(meanSteps) = ", max(intervalSummary$meanSteps)))
-```
-
-## Imputing missing values
-```{r inputMissingValues}
 inputMissingValues <- function(dataset) {
+    library(dplyr)
+    
     numberOfNARows <- sum(!complete.cases(dataset))
     print(paste("Number of Rows with NAs = ", numberOfNARows))
     
@@ -100,20 +80,35 @@ inputMissingValues <- function(dataset) {
     datasetWithNoNAs
 }
 
-datasetWithNoNAs <- inputMissingValues(dataset)
-```
+weekEndWeekDayPatterns <- function(datasetWithNoNAs) {
+    library(timeDate)
+    library(ggplot2)
+    
+    #Create a new factor column to indicate Weekday vs Weekend for a given date
+    datasetWithNoNAs <- mutate(datasetWithNoNAs, dayClassification = as.factor(ifelse(isWeekday(date, wday=1:5), "Weekday", "Weekend")))
 
-## Are there differences in activity patterns between weekdays and weekends?
-```{r weekEndWeekDayPatterns}
-#Create a new factor column to indicate Weekday vs Weekend for a given date
-datasetWithNoNAs <- mutate(datasetWithNoNAs, dayClassification = as.factor(ifelse(isWeekday(date, wday=1:5), "Weekday", "Weekend")))
+    print(head(datasetWithNoNAs))
+    
+    #Group by the dataset with interval and dayClassification
+    groupByDataset <- group_by(datasetWithNoNAs, interval, dayClassification)
+    intervalSummaryWeekDay <- summarise(groupByDataset, meanSteps = mean(steps, na.rm = TRUE))
+    View(intervalSummaryWeekDay)
+    
+    weekdayTrendPlot <- ggplot(intervalSummaryWeekDay, aes(interval, meanSteps))
+    weekdayTrendPlot <- weekdayTrendPlot + geom_line(color = "blue") + labs(x = "Interval", y = "Average Number of Steps") +
+                        facet_grid( dayClassification ~ . )
+    print(weekdayTrendPlot)
+    print(summary(intervalSummaryWeekDay$meanSteps))
+}
 
-#Group by the dataset with interval and dayClassification
-groupByDataset <- group_by(datasetWithNoNAs, interval, dayClassification)
-intervalSummaryWeekDay <- summarise(groupByDataset, meanSteps = mean(steps, na.rm = TRUE))
-
-weekdayTrendPlot <- ggplot(intervalSummaryWeekDay, aes(interval, meanSteps))
-weekdayTrendPlot <- weekdayTrendPlot + geom_line(color = "blue") + labs(x = "Interval", y = "Average Number of Steps") +
-                    facet_grid( dayClassification ~ . )
-print(weekdayTrendPlot)
-```
+fitnessDataAnalysis <- function() {
+    dataset <- loadDataset()
+    
+    totalStepsTakenEachDay(dataset)
+    
+    averageStepsTakenPerInterval(dataset)
+    
+    datasetWithNoNAs <- inputMissingValues(dataset)
+    
+    weekEndWeekDayPatterns(datasetWithNoNAs)
+}
